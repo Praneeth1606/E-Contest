@@ -11,7 +11,7 @@ from werkzeug import generate_password_hash,check_password_hash
 import threading
 import re
 import sys
-from app.qnEvaluate import score
+from qnEvaluate import score
 from flask_socketio import SocketIO, emit
 import decimal 
 from sqlalchemy import nullslast
@@ -49,7 +49,8 @@ class SignupForm(FlaskForm) :
 	confirm_password = PasswordField('confirm_password',validators = [InputRequired(), Length(min = 6,max = 30,message='Password must be between 6 and 30 characters')])
 	email = StringField('email',validators = [Email(message='Not a valid Email Address'),Length(max = 50,message='Email must atmost 50 characters')])
 	name = StringField('name',validators = [Length(min = 1,max = 50,message='Name must be between 1 and 50 characters')])
-	shaastraID = StringField('shaastraID',validators = [InputRequired(), Length(max = 25,message='Shaastra ID must be atmost 25 characters')])
+	#shaastraID = StringField('shaastraID',validators = [InputRequired(), Length(max = 25,message='Shaastra ID must be atmost 25 characters')])
+	teamname = StringField('teamname' , validators = [InputRequired(), Lenght(max = 50,message='Team Name must be atmost 50 characters')])
 	contact = StringField('contact',validators = [Length(max = 20,message='Contact Number must be atmost 20 characters')])
 
 register_url = '/register'
@@ -241,7 +242,7 @@ def register() :
 
 		if (request.method == 'POST' and form.validate_on_submit()) :
 			if User.query.filter_by(username = form.username.data).count() == 0 :
-				new_user = User(done = False,rem_time = 6000,username = form.username.data,password = form.confirm_password.data,email = form.email.data,shaastraID = form.shaastraID.data,name = form.name.data,contact = form.contact.data)
+				new_user = User(done = False,rem_time = 6000,username = form.username.data,password = form.confirm_password.data,email = form.email.data,teamname = form.teamname.data,name = form.name.data,contact = form.contact.data)
 				db.session.add(new_user)
 				db.session.commit() 
 				return '<h1>' + 'Successfully Registered Contestant' + '</h1>'
