@@ -22,7 +22,7 @@ Contest Standings
 		<table>
 			<tr class = "header">
 				<th>RANK</th>
-				<th>SHAASTRA ID</th>
+				<th>Team name</th>
 				<th>Q1</th>
 				<th>Q2</th>
 				<th>Q3</th>
@@ -33,7 +33,7 @@ Contest Standings
 			{% for res in results : %}
 			<tr>
 				<td></td>
-				<td>{{res.user.shaastraID}}</td>
+				<td>{{res.user.teamname}}</td>
 				{% if res.q1s is not none : %}
 				<td>{{res.q1s}}</td>
 				{% else : %}
