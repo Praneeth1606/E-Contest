@@ -93,6 +93,9 @@ function main_page_content() {
 		else if (val == 'QN7') {
 			$("#question-box").load("../static/qns/qn7.txt");
 		}
+		else if(val == 'QN8' ) {
+			$("#question-box").load("../static/qns/qn8.txt");
+		}
 	}
 
 }
