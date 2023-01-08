@@ -1,99 +1,121 @@
-MAX_SIZE = 5e6
-MAX_CELLS  = 65536
-MAX_VAL = 255
-MIN_VAL = 0
+# !/usr/bin/env python3
+import random
+import sys
 
-lineno = 1
-ptr = 0
-data = [0] * MAX_CELLS
-brackets = []
+class Program:
+    # Dic: string->list
+    rules = None
+    # String
+    state = None
 
-inp_buff = ''
-out_buff = ''
-inp_ind = 0
+    debug = False
 
-def interpret(program,inputPath,outputPath,Q) :
-	global MAX_CELLS, MAX_VAL, MIN_VAL, MAX_SIZE
-	global lineno, ptr, data, brackets, inp_buff, out_buff, inp_ind
+    def __init__(self):
+        pass
 
-	strlen = len(program)
-	if (strlen > MAX_SIZE) :
-		Q.put("MEMORY LIMIT EXCEEDED")
-		return
+    # Parse code to determine rules and initial state
+    def load(self, code):
+        self.rules = {}
+        self.state = ""
+        lines = code.split("\n")
+        # If we are adding rules or adding initial state
+        adding_rules = True
 
-	with open(inputPath,'r') as f :
-		inp_buff = f.read()
-	inp_buff = inp_buff.strip()
-	inplen = len(inp_buff)
+        for line in lines:
+            if adding_rules:
+                if "::=" in line:
+                    if line.replace(" ", "").replace("\t", "") == "::=":
+                        adding_rules = False
+                    else:
+                        # Add new rule
+                        lh = line[0:line.find("::=")]
+                        rh = line[line.find("::=")+3::]
+                        if lh not in self.rules:
+                            self.rules[lh] = [rh]
+                        else:
+                            self.rules[lh].append(rh)
+            else:
+                if self.state!="" or line!="":
+                    if self.state!="":
+                        self.state+="\n"
+                    self.state+=line
 
-	ind = 0
-	while (ind < strlen) :
-		if (program[ind] == '+') :
-			if (data[ptr] >= MAX_VAL) :
-				data[ptr] = MIN_VAL
-			else :
-				data[ptr] += 1
-		elif (program[ind] == '-') :
-			if (data[ptr] <= MIN_VAL) :
-				data[ptr] = MAX_VAL
-			else :
-				data[ptr] -= 1
-		elif (program[ind] == '<') :
-			ptr -= 1
-			if (ptr < 0) :
-				ptr = MAX_CELLS-1
-		elif (program[ind] == '>') :
-			ptr += 1
-			if (ptr >= MAX_CELLS) :
-				ptr = 0
-		elif (program[ind] == ',') :
-			if (inp_ind >= inplen) :
-				Q.put(f"RUNTIME ERROR : Line {lineno}")
-				return
-			data[ptr] = ord(inp_buff[inp_ind])
-			inp_ind += 1
-		elif (program[ind] == '.') :
-			out_buff += str(chr(data[ptr]))
-		elif (program[ind] == '[') :
-			if (data[ptr] != 0) :
-				brackets.append([ind,lineno])
-			else :
-				ob = 1
-				cb = 0
-				ind += 1
-				while (ind < strlen) :
-					if (program[ind] == '[') :
-						ob += 1
-					elif (program[ind] == ']') :
-						cb += 1
-					elif (program[ind] == '\n') :
-						lineno += 1
-					if (cb == ob) :
-						break
-					ind += 1
+    def run(self):
+        # Just keep stepping through code until we can't
+        if self.debug:
+            print(self.state);
+        while self.step():
+            if self.debug:
+                print(self.state);
 
-				if(ob != cb) :
-					Q.put(f"SYNTAX ERROR : Line {lineno}")
-					return
-		elif (program[ind] == ']') :
-			if (len(brackets) == 0) :
-				Q.put(f"SYNTAX ERROR : Line {lineno}")
-				return
-			if (data[ptr] == 0) :
-				brackets.pop()
-			else :
-				lineno = brackets[-1][1]
-				ind = brackets[-1][0]
-		elif (program[ind] == '\n') :
-			lineno += 1
-		ind += 1
+    # Select usable rule and trigger it to change the state
+    # Return True if rule was used
+    # False elsewise
+    def step(self):
+        if self.rules is None or self.state is None:
+            raise Exception("Program not initialized")
 
-	if (len(brackets) != 0) :
-		Q.put(f"SYNTAX ERROR : Line {lineno}")
-		return
+        # First select which rules we can use
+        rule_keys = []
+        for r in self.rules:
+            if r in self.state:
+                rule_keys.append(r);
+        if len(rule_keys) == 0:
+            return False
 
-	with open(outputPath,'w+') as f :
-		f.write(out_buff)
+        # Pick a random rule
+        rkey = random.choice(rule_keys);
+        rval = random.choice(self.rules[rkey]);
 
-	Q.put("ANSWER WRITTEN")
-	return
+        # Get random location
+        locations = set([])
+        for i in range(len(self.state)):
+            loc = self.state[i::].find(rkey)+i
+            if loc-i != -1:
+                locations.add(loc)
+        loc = random.choice(list(locations))
+
+        # And replace 
+        # If it begins with a tilde, though, just output
+        if len(rval)>0 and rval[0] == "~":
+            sys.stdout.write(rval[1::])
+            sys.stdout.flush()
+            rval = ""
+        elif rval == ":::":
+        # ":::" replace with user input
+            rval = input()
+
+        self.state = self.state[0:loc]+rval+self.state[loc+len(rkey)::]
+
+        return True
+
+def test():
+    p = Program()
+    p.load("""_::=~Hello World
+    ::=
+_""")
+    assert(p.rules["_"][0] == "~Hello World")
+    assert(len(p.rules["_"]) == 1)
+    assert(len(p.rules) == 1)
+    assert(p.state == "_")
+
+if __name__=="__main__":
+    usage = f"Usage: {sys.argv[0]} [-d] file"
+    p = Program()
+
+    # Parse arguments
+    if len(sys.argv)<2:
+        print(usage)
+        exit(1)
+    fname = None
+    if len(sys.argv)>2:
+        fname = sys.argv[2]
+        if(sys.argv[1] == "-d"):
+            p.debug = True
+    else:
+        fname = sys.argv[1]
+
+
+    with open(fname, "r") as fp:
+        p.load(fp.read())
+        p.run()
