@@ -48,7 +48,8 @@ class User(db.Model) :
 	password = db.Column(db.String,nullable = False)
 	name = db.Column(db.String(50))
 	contact = db.Column(db.String(20))
-	shaastraid = db.Column(db.String(25),nullable = False,unique = True)
+	#shaastraid = db.Column(db.String(25),nullable = False,unique = True)
+	teamname = db.Column(db.String(50),nullable = False,unique = True)
 	email = db.Column(db.String(50))
 	done = db.Column(db.Boolean,nullable = False)
 	rem_time = db.Column(db.Integer,nullable = False)
@@ -106,7 +107,8 @@ class SignupForm(FlaskForm) :
 	confirm_password = PasswordField('confirm_password',validators = [InputRequired(), Length(min = 6,max = 30,message='Password must be between 6 and 30 characters')])
 	email = StringField('email',validators = [Email(message='Not a valid Email Address'),Length(max = 50,message='Email must atmost 50 characters')])
 	name = StringField('name',validators = [Length(min = 1,max = 50,message='Name must be between 1 and 50 characters')])
-	shaastraid = StringField('shaastraid',validators = [InputRequired(), Length(max = 25,message='Shaastra ID must be atmost 25 characters')])
+	#shaastraid = StringField('shaastraid',validators = [InputRequired(), Length(max = 25,message='Shaastra ID must be atmost 25 characters')])
+	teamname = StringField('teamname',validators = [InputRequired(), Length(max = 50,message='Team Name must be atmost 50 characters')])
 	contact = StringField('contact',validators = [Length(max = 20,message='Contact Number must be atmost 20 characters')])
 
 register_url = '/register'
@@ -116,8 +118,8 @@ pno = 0
 IST = pytz.timezone('Asia/Kolkata')
 utc = pytz.utc
 
-startTime = datetime(2022,1,16,9,30,0) #Datetimes in UTC
-endTime = datetime(2022,1,16,11,30,0)
+startTime = datetime(2023,1,27,9,30,0) #Datetimes in UTC
+endTime = datetime(2022,1,27,11,30,0)
 
 startTime = utc.localize(startTime).astimezone(IST)
 endTime = utc.localize(endTime).astimezone(IST)
